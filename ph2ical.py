@@ -2,7 +2,7 @@ import logging
 from bs4 import BeautifulSoup
 import sys
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 from icalendar import Calendar, Event
 
 logging.basicConfig()
@@ -26,9 +26,26 @@ if __name__ == "__main__":
         holiday = row.find_all('td')
         if len(holiday) == 3:
             daymonth = holiday[0].text.lstrip('0')
-            date = datetime.strptime(f'{daymonth} {year}', '%d %b %Y').date()
+            date = datetime.strptime(f'{daymonth} {year}', '%d %b %Y')
             day = date.strftime('%a')
-            log.info(f'parsed holiday from webpagge: {day}, {date} ({holiday[2].text.strip()})')
-            holidays.append(date)
+            name = holiday[2].text.strip()
+            log.info(f'parsed holiday from webpagge: {day}, {date.date()} ({name})')
+            holidays.append({'date': date, 'name': name})
     
     # create ical file
+    cal = Calendar()
+    
+    for holiday in holidays:
+        event = Event()
+        dtstart = holiday['date']
+        dtend = dtstart + timedelta(days=1)
+        event.add('dtstart', dtstart.date())
+        event.add('dtend',  dtend.date())
+        event.add('summary', holiday['name'])
+        event.add('description', holiday['date'])
+        log.debug(event)
+        cal.add_component(event)
+
+    f = open(f'swissholidays_{year}.ical', 'wb')
+    f.write(cal.to_ical())
+    f.close()
