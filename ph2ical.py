@@ -42,7 +42,7 @@ if __name__ == "__main__":
         event.add('dtstart', dtstart.date())
         event.add('dtend',  dtend.date())
         event.add('summary', holiday['name'])
-        event.add('description', holiday['date'])
+        event.add('description', f'#holiday {holiday["date"]}')
         log.debug(event)
         cal.add_component(event)
 
